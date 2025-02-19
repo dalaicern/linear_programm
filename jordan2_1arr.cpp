@@ -133,9 +133,6 @@ void solve(){
         }
     }
 
-    flo w(4, 3);
-    arr[1][0].val = w;
-
     print(arr);
     cout << endl;
 
@@ -146,21 +143,9 @@ void solve(){
 
         // debug2(row, col) << endl;
         if(col == -1){
-            if(row <= m){
-                
-                flo C(0, 1);
-                for(int j = 1; j  <= m; j++){
-                    if(arr[0][j].x != "x")
-                        C = C + (arr[row][j].val * arr[0][j].val);
-                }
-
-                if(C == arr[row][0].val){
-                    cout << "Niitstei\n";
-                    printSol(arr);
-                } else {
-                    cout << "Niitsgui!!!\n";
-                }
-            } else 
+            if(row <= m)
+                cout << "Shiidgui!!!\n";
+            else 
                 checkPossible(f ? arr : arr1);
             return;
         }
@@ -178,21 +163,8 @@ void solve(){
                     if(f) arr1[i][0] = arr[i][0];
                     else arr[i][0] = arr1[i][0];
 
-                } else if(i == row && j == col){
-                    // main element
-                    if(f) arr1[i][j].val = flo(1,1) / arr[i][j].val;
-                    else arr[i][j].val  = flo(1,1) / arr1[i][j].val;
-
-                } else if(i == row){
-                    // main row elements
-                    if(f) arr1[i][j].val =  arr[i][j].val / el;
-                    else arr[i][j].val = arr1[i][j].val / el;
-
-                } else if(j == col){
-                    // main column elements
-                    if(f) arr1[i][j].val = arr[i][j].val / (el * flo(-1, 1));
-                    else arr[i][j].val = arr1[i][j].val / (el * flo(-1, 1));
-
+                } else if((i == row && j == col) || (i == row) || (j == col)){
+                    continue;
                 } else {
                     // remained other elements
                     if(f) arr1[i][j].val = (el * arr[i][j].val - arr[row][j].val * arr[i][col].val) / (el);
@@ -202,19 +174,28 @@ void solve(){
             }
         }
 
+        // main element
+        // if(f) arr1[i][j].val = flo(1,1) / arr[i][j].val;
+        // else arr[i][j].val  = flo(1,1) / arr1[i][j].val;
 
-        // change x and constant of main element's row, column.
-        if(f){
-            arr1[row][0] = arr[0][col];
-            arr1[0][col] = arr[row][0];
-            arr1[0][col].val = (arr1[0][col].val * flo(-1, 1));
-        } else {
-            arr[row][0] = arr1[0][col];
-            arr[0][col] = arr1[row][0];
-            arr[0][col].val = (arr[0][col].val * flo(-1, 1));
-        }
 
-        print(f ? arr1 : arr);
+        //  else if(i == row){
+        //             // main row elements
+        //             if(f) arr1[i][j].val =  arr[i][j].val / el;
+        //             else arr[i][j].val = arr1[i][j].val / el;
+
+        //         } else if(j == col){
+        //             // main column elements
+        //             if(f) arr1[i][j].val = arr[i][j].val / (el * flo(-1, 1));
+        //             else arr[i][j].val = arr1[i][j].val / (el * flo(-1, 1));
+
+        //         }
+
+        arr[row][0] = arr1[0][col];
+        arr[0][col] = arr1[row][0];
+        arr[0][col].val = (arr[0][col].val * flo(-1, 1));
+
+        print(arr);
         cout << endl;
         f = !f;
     }
