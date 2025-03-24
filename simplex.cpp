@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 
-#include "jordan2.hpp"
+// #include "jordan2.hpp"
+#include "simplex.hpp"
 
 //#define int              long long
 #define vi              vector<int >
@@ -15,8 +16,6 @@
 using namespace std;
 const int MOD = 1e9 + 7;
 
-
-
 signed main() {
 
     ios::sync_with_stdio(0);
@@ -26,11 +25,12 @@ signed main() {
     cout << "=> Bodoh bodlogonii toog oruulna uu: \n";
     cin >> t;
     for(int i = 1; i <= t; i++) {
-        printf("\n=> %d. Shine bodlogo. \n\n", i);
+        printf("\n\n=> %d. Shine bodlogo. \n\n", i);
+        cout << "tentsetgel bishiin too, huvisagchiin too\n";
         int n, m; cin >> n >> m;
-        jordan2 jordan(n, m);
+        simplex simplex(n + 1, m + 1);
 
-        jordan.matrix_solver();
+        simplex.onovchtoi_shiid();
     }
 
 }

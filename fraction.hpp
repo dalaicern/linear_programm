@@ -1,8 +1,6 @@
 #ifndef FRACTION_H
 #define FRACTION_H
 
-#include <iostream>
-#include <numeric> // For std::gcd
 using namespace std;
 
 class flo {
@@ -57,6 +55,22 @@ public:
     }
     int getDenominator(){
         return denominator;
+    }
+
+    bool operator<(const flo &other) const {
+        return (static_cast<long long>(numerator) * other.denominator) < (static_cast<long long>(other.numerator) * denominator);
+    }
+    
+    bool operator>(const flo &other) const {
+        return other < *this;
+    }
+    
+    bool operator<=(const flo &other) const {
+        return !(other < *this);
+    }
+    
+    bool operator>=(const flo &other) const {
+        return !(*this < other);
     }
 
     friend ostream &operator<<(ostream &os, const flo &f) {

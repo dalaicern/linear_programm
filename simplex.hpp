@@ -1,0 +1,255 @@
+#ifndef SIMPLEX
+#define SIMPLEX
+
+#include "item.hpp"
+
+const flo ZERO(0, 1);
+class simplex{
+private:
+    int n, m;
+public: 
+    simplex(int equation, int variables){
+        n = equation;
+        m = variables;
+    }
+
+    void print(vector<vector<item>>& arr){
+        for (int i = 0; i <= n; i++) {
+            for (int j = 0; j <= m; j++) {
+                if(arr[i][j].x == "c") {
+                    if(i == 0 && j == m) cout << arr[i][j].x;
+                    else arr[i][j].val.print(), cout << " ";
+                } else {
+                    if(arr[i][j].val < ZERO) cout << "-";
+                    cout << arr[i][j].x << arr[i][j].index << " ";
+                }
+            }
+            cout << endl;
+        }
+    }
+
+    void get_matrix(vector<vector<item>>& arr){
+        int y_index = 1;
+
+        for (int i = 1; i < m; i++) {
+            arr[0][i].val = flo(-1,1);
+            arr[0][i].x = "x";
+            arr[0][i].index = i;
+        }
+
+        for(int i = 1; i < n; i++){
+            string symbol; cin >> symbol;
+            cout << symbol;
+            if(symbol == "="){
+                arr[i][0].x = "c";
+                arr[i][0].val = ZERO;
+                arr[i][0].index = -1;
+            } else {
+                arr[i][0].x = "y";
+                arr[i][0].val = flo(1,1);
+                arr[i][0].index = y_index++;
+            }
+
+            int el;
+            for (int j = 1; j <= m; j++) {
+                cin >> el;
+                if(symbol == ">=") el = -el;
+                flo a(el, 1);
+                arr[i][j].val = a;
+            }
+        }
+
+        cout << "MAXIMUM(1) | MINIMUM(0): ";
+        int type; cin >> type;
+
+        cout << "Zorilgiin function ii coef uud oruul: \n";
+
+        for(int j = 1; j <= m; j++){
+            int el; cin >> el;
+            if(!type) el = -el;
+            flo a(el, 1);
+            arr[n][j].val = a;
+        }
+    }
+
+    int get_row(vector<vector<item>> & arr, int col, int isPos){
+        for (int i = 1; i < n; i++) {
+            if(arr[0][col].index == -1)
+                continue;
+            if(isPos && arr[i][col].val > ZERO) return i;
+            else if(!isPos && arr[i][col].val < ZERO) return i;
+        }
+
+        return -1;
+    }
+
+    int get_col(vector<vector<item>> & arr, int row,  int isPos){
+        for (int j = 1; j < m; j++) {
+            if(arr[0][j].index == -1)
+                continue;
+            if(isPos && arr[row][j].val > ZERO) return j;
+            else if (!isPos && arr[row][j].val < ZERO) return j;
+        }
+
+        return -1;
+    }
+
+    int get_min_simplex(vector<vector<item>> & arr, int col){
+        int min_row = -1;
+
+        for(int i = 1; i < n; i++){
+            if(arr[i][col].val == ZERO) continue;
+            flo a = arr[i][m].val / arr[i][col].val;
+            
+            if((min_row != -1 && a > ZERO && arr[min_row][m].val / arr[min_row][col].val  > arr[i][m].val / arr[i][col].val)
+                || (min_row == -1 && arr[i][m].val / arr[i][col].val > ZERO)){
+                min_row = i;
+
+            }
+        }
+
+        return min_row;
+    }
+
+    int get_transform_col(vector<vector<item>> & arr, int row){
+        for (int j = 1; j < m; j++) {
+            if(arr[row][j].val != ZERO && arr[0][j].x != "c"){
+                return j;
+            }
+        }
+
+        return -1;
+    }
+
+
+    vector<vector<item>> transform(vector<vector<item>>& arr,int row, int col){
+        vector<vector<item>> arr1(n + 1, vector<item>(m + 1, {"c", 0, 0}));
+
+        flo el = arr[row][col].val;
+
+        for(int i = 0; i <= n; i++) {
+            for (int j = 0; j <= m; j++){  
+                if(i == 0){
+                    // x elements
+                    arr1[0][j] = arr[0][j];
+
+                } else if (j == 0){
+                    // constants
+                    arr1[i][0] = arr[i][0];
+
+                } else if(i == row && j == col){
+                    // main element
+                    arr1[i][j].val = flo(1,1) / arr[i][j].val;
+
+                } else if(i == row){
+                    // main row elements
+                    arr1[i][j].val =  arr[i][j].val / el;
+
+                } else if(j == col){
+                    // main column elements
+                    arr1[i][j].val = arr[i][j].val / (el * flo(-1, 1));
+
+                } else {
+
+                    arr1[i][j].val = (el * arr[i][j].val - arr[row][j].val * arr[i][col].val) / (el);
+                }
+            }
+        }
+
+        swap(arr1, row, col);
+
+        return arr1;
+    }
+
+    void swap(vector<vector<item>>& arr, int row, int col){
+        item temp = arr[row][0];
+        arr[row][0] = arr[0][col];
+        arr[0][col] = temp;
+        arr[0][col].val = (arr[0][col].val * flo(-1, 1));
+        arr[row][0].val = (arr[row][0].val * flo(-1, 1));
+    }
+
+    void tulguur(vector<vector<item>>& arr){
+
+        while(true){
+            int negative_row = get_row(arr, m, 0);
+            if(negative_row < 0){
+                cout << "onovchtoi shiid ruu shiljiv. \n";
+                return;
+            }
+
+            int main_col = get_col(arr, negative_row, 0);
+
+            if(main_col < 0){
+                arr[0][0].val = flo(-1 ,1);
+                return;
+            }
+
+            int min_simplex = get_min_simplex(arr, main_col);
+
+            // cout  << negative_row << " " << main_col << " " << min_simplex;
+            
+            arr = transform(arr, min_simplex, main_col);
+            
+
+            print(arr);
+            cout << endl;
+        }
+    }
+
+    void onovchtoi_shiid(){
+        vector<vector<item>> arr(n + 1, vector<item>(m + 1, {"c", 0, 0}));
+
+        // hamgiin ehend >=, <= , = temdgiin ali negiig zaaj ugnu uu.
+        // sul gishuunees ehlen daraalan oruulna uu. a1 * x1 + a2 * x2 ... am * xm >= c
+        // temdeg uurchluh shaardlagagui.
+
+        // zorilgiin function ii huvid max esvel min. ali bodlogo ve.
+        // temdeg oruulalguiger shuud coef ee oruulna.
+        get_matrix(arr);
+
+        print(arr);
+        cout << endl;
+        
+        for(int i = 1; i < n; i++){
+            if(arr[i][0].x == "c" && arr[i][0].val == ZERO){
+                int transform_col = get_transform_col(arr, i);
+                arr = transform(arr, i, transform_col);
+            }
+        }
+        print(arr);
+        cout << endl;
+
+        tulguur(arr);
+
+        if(arr[0][0].val < ZERO){
+            cout << "bodlogo duussan deerees zaaglagdaagui niitsgui\n";
+            return;
+        }
+
+        while(true){
+            int pos_col = get_col(arr, n, 1);
+            if(pos_col < 0){
+                cout << "shiid oldson: Z = ";
+                arr[n][m].val.print();
+                return;
+            }
+            int pos_row = get_row(arr, pos_col, 1);
+            if(pos_row < 0){
+                cout << "dooroos zaaglagdaagui onovchtoi oldohgui.\n";
+                return;
+            }
+            int min_simplex = get_min_simplex(arr, pos_col);
+
+            arr = transform(arr, min_simplex, pos_col);
+            
+            swap(arr, min_simplex, pos_col);
+
+            print(arr);
+            cout << endl;
+        }
+    }
+};
+
+#endif
+
