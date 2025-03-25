@@ -7,25 +7,85 @@ const flo ZERO(0, 1);
 class simplex{
 private:
     int n, m;
+    int isMax;
+    pair<int, int> last_selected;
+
 public: 
     simplex(int equation, int variables){
         n = equation;
         m = variables;
+        last_selected.first = -1;
+        last_selected.second = -1;
     }
 
-    void print(vector<vector<item>>& arr){
-        for (int i = 0; i <= n; i++) {
-            for (int j = 0; j <= m; j++) {
-                if(arr[i][j].x == "c") {
-                    if(i == 0 && j == m) cout << arr[i][j].x;
-                    else arr[i][j].val.print(), cout << " ";
-                } else {
-                    if(arr[i][j].val < ZERO) cout << "-";
-                    cout << arr[i][j].x << arr[i][j].index << " ";
-                }
+    string cellToString(item &it, int i, int j, int m) {
+        ostringstream oss;
+        if (it.x == "c") {
+            if (i == 0 && j == m){
+                oss << it.x;
+            }else{
+                oss << it.val.getNumerator();
+                if(it.val.getDenominator() != 1) oss << "/" << it.val.getDenominator();
             }
-            cout << endl;
+        } else {
+            if (it.val < ZERO) {
+                oss << "-" << it.x << it.index;
+            } else {
+                oss << it.x << it.index;
+            }
         }
+        return oss.str();
+    }
+    
+    vector<size_t> computeColumnWidths(const vector<vector<string>>& table) {
+        vector<size_t> widths;
+        if (table.empty()) return widths;
+        widths.resize(table[0].size(), 0);
+        for (const auto& row : table) {
+            for (size_t j = 0; j < row.size(); j++) {
+                widths[j] = max(widths[j], row[j].size());
+            }
+        }
+        return widths;
+    }
+    
+    void printBorder(const vector<size_t>& widths) {
+        cout << "+";
+        for (auto w : widths) {
+            cout << string(w + 2, '-') << "+";
+        }
+        cout << "\n";
+    }
+    
+    void printTable(const vector<vector<string>>& table) {
+        auto widths = computeColumnWidths(table);
+        printBorder(widths);
+        for (const auto& row : table) {
+            cout << "|";
+            for (size_t j = 0; j < row.size(); j++) {
+                cout << " " << setw(widths[j]) << left << row[j] << " |";
+            }
+            cout << "\n";
+            printBorder(widths);
+        }
+    }
+    
+    void print(vector<vector<item>>& arr) {
+        vector<vector<string>> table;
+        for (int i = 0; i <= n; i++) {
+            vector<string> row;
+            for (int j = 0; j <= m; j++) {
+                row.push_back(cellToString(arr[i][j], i, j, m));
+            }
+            table.push_back(row);
+        }
+        printTable(table);
+    }
+
+    void printSol(vector<vector<item>>& arr){
+        cout << "shiid oldson: Z = ";
+        if(isMax) arr[n][m].val = arr[n][m].val * flo(-1, 1);
+        arr[n][m].val.print();
     }
 
     void get_matrix(vector<vector<item>>& arr){
@@ -60,13 +120,14 @@ public:
         }
 
         cout << "MAXIMUM(1) | MINIMUM(0): ";
-        int type; cin >> type;
+        cin >> isMax;
 
         cout << "Zorilgiin function ii coef uud oruul: \n";
 
+        arr[n][0].x = "Z";
         for(int j = 1; j <= m; j++){
             int el; cin >> el;
-            if(!type) el = -el;
+            if(!isMax) el = -el;
             flo a(el, 1);
             arr[n][j].val = a;
         }
@@ -98,15 +159,22 @@ public:
         int min_row = -1;
 
         for(int i = 1; i < n; i++){
-            if(arr[i][col].val == ZERO) continue;
-            flo a = arr[i][m].val / arr[i][col].val;
-            
-            if((min_row != -1 && a > ZERO && arr[min_row][m].val / arr[min_row][col].val  > arr[i][m].val / arr[i][col].val)
-                || (min_row == -1 && arr[i][m].val / arr[i][col].val > ZERO)){
-                min_row = i;
+            if(arr[i][col].val == ZERO || (last_selected.first == i && last_selected.second == col))
+                continue;
 
+            flo a = arr[i][m].val / arr[i][col].val;
+
+            if((min_row != -1 && a >= ZERO && arr[min_row][m].val / arr[min_row][col].val  > arr[i][m].val / arr[i][col].val)
+                || (min_row == -1 && arr[i][m].val / arr[i][col].val >= ZERO)){
+                min_row = i;
             }
         }
+
+        if(min_row != -1){
+            last_selected.first = min_row;
+            last_selected.second = col;
+        }
+        
 
         return min_row;
     }
@@ -127,6 +195,7 @@ public:
 
         flo el = arr[row][col].val;
 
+        cout << row  << " " << col << endl;
         for(int i = 0; i <= n; i++) {
             for (int j = 0; j <= m; j++){  
                 if(i == 0){
@@ -158,6 +227,9 @@ public:
 
         swap(arr1, row, col);
 
+        print(arr1);
+        cout << endl;
+
         return arr1;
     }
 
@@ -170,7 +242,7 @@ public:
     }
 
     void tulguur(vector<vector<item>>& arr){
-
+        cout << "=> Tulguur shiid\n";
         while(true){
             int negative_row = get_row(arr, m, 0);
             if(negative_row < 0){
@@ -181,19 +253,23 @@ public:
             int main_col = get_col(arr, negative_row, 0);
 
             if(main_col < 0){
+                cout << "bodlogo duussan deerees zaaglagdaagui niitsgui\n";
                 arr[0][0].val = flo(-1 ,1);
                 return;
             }
 
             int min_simplex = get_min_simplex(arr, main_col);
 
+            if(min_simplex == -1){
+                cout << "Buhult uusev.\n";
+                arr[0][0].val = flo(-1 ,1);
+                return;
+            }
+
             // cout  << negative_row << " " << main_col << " " << min_simplex;
             
             arr = transform(arr, min_simplex, main_col);
-            
 
-            print(arr);
-            cout << endl;
         }
     }
 
@@ -217,21 +293,21 @@ public:
                 arr = transform(arr, i, transform_col);
             }
         }
-        print(arr);
-        cout << endl;
 
         tulguur(arr);
 
+        // arr  = transform(arr, 2, 1);
+        // print(arr);
+        // return;
+
         if(arr[0][0].val < ZERO){
-            cout << "bodlogo duussan deerees zaaglagdaagui niitsgui\n";
             return;
         }
 
         while(true){
             int pos_col = get_col(arr, n, 1);
             if(pos_col < 0){
-                cout << "shiid oldson: Z = ";
-                arr[n][m].val.print();
+                printSol(arr);
                 return;
             }
             int pos_row = get_row(arr, pos_col, 1);
@@ -241,12 +317,12 @@ public:
             }
             int min_simplex = get_min_simplex(arr, pos_col);
 
-            arr = transform(arr, min_simplex, pos_col);
-            
-            swap(arr, min_simplex, pos_col);
+            if(min_simplex == -1){
+                printSol(arr);
+                return;
+            }
 
-            print(arr);
-            cout << endl;
+            arr = transform(arr, min_simplex, pos_col);
         }
     }
 };
