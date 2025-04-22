@@ -1,6 +1,5 @@
 #include <bits/stdc++.h>
 
-// #include "jordan2.hpp"
 #include "simplex.hpp"
 
 //#define int              long long

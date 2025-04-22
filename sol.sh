@@ -1,1 +1,1 @@
-g++ -std=c++17 simplex.cpp -o simplex && ./simplex <in1
+g++ -std=c++17 simplex.cpp -o simplex && ./simplex <in3

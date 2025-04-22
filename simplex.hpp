@@ -7,7 +7,7 @@ const flo ZERO(0, 1);
 class simplex{
 private:
     int n, m;
-    int isMax;
+    int isMax = 0;
     pair<int, int> last_selected;
 
 public: 
@@ -18,7 +18,7 @@ public:
         last_selected.second = -1;
     }
 
-    string cellToString(item &it, int i, int j, int m) {
+    string cellToString(item &it, int i, int j) {
         ostringstream oss;
         if (it.x == "c") {
             if (i == 0 && j == m){
@@ -75,7 +75,8 @@ public:
         for (int i = 0; i <= n; i++) {
             vector<string> row;
             for (int j = 0; j <= m; j++) {
-                row.push_back(cellToString(arr[i][j], i, j, m));
+                if(arr[0][j].index != -1)
+                    row.push_back(cellToString(arr[i][j], i, j));
             }
             table.push_back(row);
         }
@@ -83,9 +84,20 @@ public:
     }
 
     void printSol(vector<vector<item>>& arr){
-        cout << "shiid oldson: Z = ";
-        if(isMax) arr[n][m].val = arr[n][m].val * flo(-1, 1);
+        
+        // arr[n][m].val = arr[n][m].val;
+        for(int i = 1; i < n; i++){
+            cout << arr[i][0].x << arr[i][0].index << "=";
+            arr[i][m].val.print();
+            cout << endl;
+        }
+
+        for(int j = 1; j < m; j++){
+            cout << arr[0][j].x << arr[0][j].index << "=0\n";
+        }
+        cout << "Zorilgiin function utga = ";
         arr[n][m].val.print();
+
     }
 
     void get_matrix(vector<vector<item>>& arr){
@@ -146,6 +158,10 @@ public:
 
     int get_col(vector<vector<item>> & arr, int row,  int isPos){
         for (int j = 1; j < m; j++) {
+            // cout << n << endl;
+            // arr[row][j].val.print();
+            // cout << arr[row][j].index<< endl;
+
             if(arr[0][j].index == -1)
                 continue;
             if(isPos && arr[row][j].val > ZERO) return j;
@@ -246,7 +262,7 @@ public:
         while(true){
             int negative_row = get_row(arr, m, 0);
             if(negative_row < 0){
-                cout << "onovchtoi shiid ruu shiljiv. \n";
+                cout << "=> onovchtoi shiid ruu shiljiv. \n";
                 return;
             }
 
@@ -273,6 +289,41 @@ public:
         }
     }
 
+    void get_tulguur(vector<vector<item> >& arr){
+        cout << "chuluut ul medegdegch: \n";
+        // cout << n << m;
+        for(int j = 1; j < m; j++){
+            string var; cin >> var;
+            arr[0][j].x = var[0];
+            arr[0][j].index = var[1] - '0';
+            arr[0][j].val = flo(-1, 1); 
+            cout << var << endl;
+        }
+
+        cout << "undsen ul medegdegch: \n";
+        for(int i = 1; i <= n; i++){
+            string var; cin >> var;
+            arr[i][0].x = var[0];
+            arr[i][0].index = var[1] - '0';
+            arr[i][0].val = flo(1, 1);
+
+            if(var[0] == 'F') isMax = var[1] - '0';
+            cout << var << endl;
+        }
+
+        for(int i = 1; i <= n; i++){
+            for(int j = 1; j <= m; j++){
+                int num, denom; cin >> num >> denom;
+                flo a(num, denom);
+                arr[i][j].val = a;
+                arr[i][j].val.print();
+            }
+            cout << endl;
+        }
+
+        print(arr);
+    }
+
     void onovchtoi_shiid(){
         vector<vector<item>> arr(n + 1, vector<item>(m + 1, {"c", 0, 0}));
 
@@ -282,19 +333,21 @@ public:
 
         // zorilgiin function ii huvid max esvel min. ali bodlogo ve.
         // temdeg oruulalguiger shuud coef ee oruulna.
-        get_matrix(arr);
+        // get_matrix(arr);
 
-        print(arr);
-        cout << endl;
+        // print(arr);
+        // cout << endl;
         
-        for(int i = 1; i < n; i++){
-            if(arr[i][0].x == "c" && arr[i][0].val == ZERO){
-                int transform_col = get_transform_col(arr, i);
-                arr = transform(arr, i, transform_col);
-            }
-        }
+        // for(int i = 1; i < n; i++){
+        //     if(arr[i][0].x == "c" && arr[i][0].val == ZERO){
+        //         int transform_col = get_transform_col(arr, i);
+        //         arr = transform(arr, i, transform_col);
+        //     }
+        // }
 
-        tulguur(arr);
+        // tulguur(arr);
+
+        get_tulguur(arr);
 
         // arr  = transform(arr, 2, 1);
         // print(arr);
@@ -305,7 +358,8 @@ public:
         }
 
         while(true){
-            int pos_col = get_col(arr, n, 1);
+            int pos_col = get_col(arr, n, !isMax);
+            // cout << pos_col;
             if(pos_col < 0){
                 printSol(arr);
                 return;
@@ -315,6 +369,7 @@ public:
                 cout << "dooroos zaaglagdaagui onovchtoi oldohgui.\n";
                 return;
             }
+            // cout << pos_col << pos_row << endl;
             int min_simplex = get_min_simplex(arr, pos_col);
 
             if(min_simplex == -1){
